@@ -9,69 +9,65 @@ from datetime import datetime
 import time
 from datetime import date
 from io import StringIO
+import plotly.express as px
+import seaborn as sns
 
 # adding title and text in the app
 
-st.write("Welcome to your first streamli application")
-st.sidebar.title("Share Price analysis for May 2019 to May 2020:")
-st.markdown("This application is a Share Price dashboard for Top 5 Gainers and Losers:")
-st.sidebar.markdown("This application is a Share Price dashboard for Top 5 Gainers and Losers:")
-st.sidebar.title("Gainers")
-select = st.sidebar.selectbox('Share', ['Adani Green Energy', 'GMM Pfaudler', 'AGC Networks', 'Alkyl Amines Chem', 'IOL Chem & Pharma'], key='1')
 
-df = pd.DataFrame({'col1': [1,2,3]})
+st.sidebar.title("World Happiness:")
+st.sidebar.markdown("Filter the region here:")
+years_list = ["All","Western Europe", "South Asia", "Southeast Asia", "East Asia"] 
 
-x = 10
-'x', x  # <-- Draw the string 'x' and then the value of x
-st.markdown('Streamlit is **_really_ cool**.')
-st.latex(r'''
-   a + ar + a r^2 + a r^3 + \cdots + a r^{n-1} =
-     \sum_{k=0}^{n-1} ar^k =
-     a \left(\frac{1-r^{n}}{1-r}\right)
-     ''')
+select = st.sidebar.selectbox('Share', years_list, key='1')
+st.image("https://images.pexels.com/photos/573259/pexels-photo-573259.jpeg?cs=srgb&dl=pexels-matheus-bertelli-573259.jpg&fm=jpg", caption='World Happiness Dataset')
+df = pd.read_csv("world-happiness-report-2021.csv")
 
-st.write(1234)
-st.write(df)
-st.write('Below is a DataFrame:', df, 'Above is a dataframe.')
+num_yrs = st.sidebar.slider('Select min Ladder Score', min_value=5, max_value=10) # Getting the input.
+df = df[df['Ladder score'] <= num_yrs] # Filtering the dataframe.
 
-df2 = pd.DataFrame(
-     np.random.randn(200, 3),
-     columns=['a', 'b', 'c'])
-
-c = alt.Chart(df2).mark_circle().encode(
-     x='a', y='b', size='c', color='c', tooltip=['a', 'b', 'c'])
-
-st.write(c)
-
-st.title('This is a title')
-st.header('This is a header')
-st.subheader('This is a subheader')
-
-code = '''def hello():
-     print("Hello, Streamlit!")'''
-st.code(code, language='python')
+if select =="All":
+    filtered_df = df
+else:   
+    filtered_df = df[df['Regional indicator']==select]
 
 
-df = pd.DataFrame(
-    np.random.randn(50, 20),
-    columns=('col %d' % i for i in range(20)))
+st.write(filtered_df)
 
-st.dataframe(df)  
+fig = px.scatter(filtered_df,
+                x="Logged GDP per capita",
+                y="Healthy life expectancy",
+                size="Ladder score",
+                color="Regional indicator",
+                hover_name="Country name",
+                size_max=10)
+st.write(fig)
 
-st.dataframe(df, 200, 100)
-st.dataframe(df.style.highlight_max(axis=0))
-st.table(df)
+st.write(px.bar(filtered_df, y='Ladder score', x='Country name'))
 
-st.json({
-     'foo': 'bar',
-     'baz': 'boz',
-     'stuff': [
-         'stuff 1',
-         'stuff 2',
-         'stuff 3',
-         'stuff 5',
-     ],
- })
+#correlate data
+corr = filtered_df.corr()
+
+#using matplotlib to define the size
+
+plt.figure(figsize=(8, 8))
+
+#creating the heatmap with seaborn
+
+
+fig1 = plt.figure()
+ax = sns.heatmap(
+    corr, 
+    vmin=-1, vmax=1, center=0,
+    cmap=sns.diverging_palette(20, 220, n=200),
+    square=True
+)
+ax.set_xticklabels(
+    ax.get_xticklabels(),
+    rotation=45,
+    horizontalalignment='right'
+);
+st.pyplot(fig1)
 
 chart_data = pd.DataFrame(
      np.random.randn(20, 3),
@@ -94,8 +90,7 @@ np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
 
 st.map(dfmap)
 
-image = Image.open('food.png')
-st.image(image, caption='Sunrise by the mountains')
+
 
 if st.button('Say hello'):
     st.write('Why hello there')
@@ -205,19 +200,6 @@ st.slider("Outside the form")
 
 # Now add a submit button to the form:
 form.form_submit_button("Submit")
-
-col1, col2, col3 = st.beta_columns(3)
-with col1:
-    st.header("A cat")
-    st.image("https://static.streamlit.io/examples/cat.jpg")
-
-with col2:
-    st.header("A dog")
-    st.image("https://static.streamlit.io/examples/dog.jpg")
-
-with col3:
-    st.header("An owl")
-    st.image("https://static.streamlit.io/examples/owl.jpg")
 
 
 def get_user_name():
